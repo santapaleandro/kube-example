@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-api
+  template:
+    metadata:
+      labels:
+        app: python-api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: python-api
+        image: python-api:v1
+        ports:
+        - containerPort: 80
+        env:
+        - name: MONGO_URL
+          value: mongodb://mongodb:27017
+        resources:
+          requests:
+            memory: "128Mi"      
+            cpu: "250m"           
+          limits:
+            memory: "256Mi"
+            cpu: "500m" 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-api
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: python-api
