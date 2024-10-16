@@ -2,11 +2,42 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: python-api
+  # namespace: default
 spec:
-  replicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-app
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50  # CPU target
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Wait 300 seconds (5 minutes) before scaling down
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 120  # Check every 120 seconds for scaling down
+    scaleUp:
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60  # Check every 60 seconds for scaling up
+  replicas: 3
   selector:
     matchLabels:
       app: python-api
+  # strategy:
+  #   type: RollingUpdate  # This is the default strategy
+  #   rollingUpdate:
+  #     maxUnavailable: 1  # At most 1 pod can be unavailable during the update
+  #     maxSurge: 1        # At most 1 new pod will be created during the update
   template:
     metadata:
       labels:
@@ -15,19 +46,63 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: python-api
-        image: python-api:v1
+        image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
         env:
+        - name: TZ
+          value: "Europe/Paris"
         - name: MONGO_URL
           value: mongodb://mongodb:27017
+        # example of ConfigMap env variable
+        # env:
+        # - name: APP_MODE  # Environment variable from ConfigMap
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: app-config  # Name of the ConfigMap
+        #       key: APP_MODE     # The key in the ConfigMap
+        # - name: LOG_LEVEL  # Another environment variable from ConfigMap
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: app-config
+        #       key: LOG_LEVEL
+        # ---------
+        # - name: DB_USERNAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: db-credentials
+        #       key: username
+        # - name: DB_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: db-credentials
+        #       key: password
+        # - name: DB_URL
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: db-credentials
+        #       key: db-url
+        # ---------
+        # livenessProbe:  # Add a liveness probe to ensure the app is running correctly
+        #   httpGet:
+        #     path: /health
+        #     port: 80
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
+        # readinessProbe:  # Add a readiness probe to ensure the app is ready to serve traffic
+        #   httpGet:
+        #     path: /ready
+        #     port: 80
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
         resources:
           requests:
-            memory: "128Mi"      
-            cpu: "250m"           
+            memory: "64Mi"
+            cpu: "100m"          
           limits:
-            memory: "256Mi"
-            cpu: "500m" 
+            memory: "128Mi"
+            cpu: "250m" 
 ---
 apiVersion: v1
 kind: Service
