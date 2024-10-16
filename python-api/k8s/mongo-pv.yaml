@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: /data/mongo  # Path on the local host
+  nodeAffinity:  # Required to specify which node the volume is available on
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - colima  # Replace with your node name
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
