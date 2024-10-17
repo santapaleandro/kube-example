@@ -1,0 +1,14 @@
+# rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods-binding
+  namespace: dev  # The binding is also restricted to the "dev" namespace
+subjects:
+  - kind: User
+    name: pavel
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: pod-reader  # The Role that is being granted
+  apiGroup: rbac.authorization.k8s.io

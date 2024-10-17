@@ -33,8 +33,8 @@ spec:
             ephemeral-storage: 1Gi
       volumes:
       - name: mongodb-storage
-        mountPath: /data/db
         # emptyDir: {}
+  serviceName: mongoDB
 
 ---
 apiVersion: v1
@@ -46,36 +46,3 @@ spec:
     - port: 27017
   selector:
     app: mongodb
-
-# Horizontal Pod Autoscaler (HPA) for MongoDB StatefulSet
-# apiVersion: autoscaling/v2
-# kind: HorizontalPodAutoscaler
-# metadata:
-#   name: mongo-hpa
-# spec:
-#   scaleTargetRef:
-#     apiVersion: apps/v1
-#     kind: StatefulSet
-#     name: mongo
-#   minReplicas: 3  # Minimum number of replicas (same as in StatefulSet)
-#   maxReplicas: 10  # Maximum number of replicas
-#   metrics:
-#   - type: Resource
-#     resource:
-#       name: cpu
-#       target:
-#         type: Utilization
-#         averageUtilization: 75  # Target CPU utilization: autoscale when CPU exceeds 75%
-
-#   behavior:
-#     scaleDown:
-#       stabilizationWindowSeconds: 300  # Wait 5 minutes before scaling down
-#       policies:
-#       - type: Percent
-#         value: 10  # Scale down by 10% at a time
-#         periodSeconds: 60  # Check every 60 seconds
-#     scaleUp:
-#       policies:
-#       - type: Percent
-#         value: 100  # Scale up by 100% (double the replicas)
-#         periodSeconds: 60  # Check every 60 seconds for scaling up

@@ -7,6 +7,9 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
+  nfs:
+    path: /mnt/data
+    server: 73.123.105.1 # remote server
   local:
     path: /data/mongo  # Path on the local host
   nodeAffinity:  # Required to specify which node the volume is available on
